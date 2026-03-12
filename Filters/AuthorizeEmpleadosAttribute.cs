@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using NetCoreSeguridadEmpleados.Repositories;
 
 namespace NetCoreSeguridadEmpleados.Filters
 {
@@ -10,18 +12,38 @@ namespace NetCoreSeguridadEmpleados.Filters
         {
             //POR AHORA , SOLAMENTE NOS INTERESA VALIDAR SI EXISTE O NO EL EMPLEADO
             var user = context.HttpContext.User;
-            if(user.Identity.IsAuthenticated == false)
+            //NECESITAMOS EL ACTION Y EL CONTROLLER DE DONDE EL USUARIO HA PULSADO
+            //PARA ELLO TENEMOS: RouteValues QUE CONTIENE LA INFORMACION
+            //RouteData["controller"]
+            //RouteData["action"]
+            //RouteData["id(algo)"] , esto es con IF
+            string controller = context.RouteData.Values["controller"].ToString();
+            string action = context.RouteData.Values["action"].ToString();
+            var id = context.RouteData.Values["id"];
+            ITempDataProvider provider = context.HttpContext.RequestServices.GetService<ITempDataProvider>();
+            //ESTA CLASE CONTIENE EL TEMPDATA DE NUESTRA APP
+            var tempData = provider.LoadTempData(context.HttpContext);
+            //ALMACENAMOS LA INFOMACION
+            tempData["controller"] = controller;
+            tempData["action"] = action;
+            //DEBEMMOS PREGUNTAR POR EL ID
+            if(id != null)
             {
-                context.Result = GetRoute("Managed", "Login");
+                tempData["id"] = id.ToString();
             }
             else
             {
-                //COMPROBAMOS LOS ROLES, TENEMOS EN CUENTA MAYUS/MINUS
-                if (user.IsInRole("PRESIDENTE") == false && user.IsInRole("DIRECTOR") == false && user.IsInRole("ANALISTA") == false)
-                {
-                    context.Result = this.GetRoute("Managed", "ErrorAcceso");
-                }
+                //ELIMINAMOS LA CLAVE PARA QUE NO SE QUEDE ENTRE PETICIONES
+                tempData.Remove("id");
             }
+            //REASIGNAMOS EL TEMPDATA PARA NUESTRA APP
+            provider.SaveTempData(context.HttpContext, tempData);
+            if (user.Identity.IsAuthenticated == false)
+            {
+                context.Result = GetRoute("Managed", "Login");
+            }
+            
+
         }
 
         //EN ALGUN MOMENTO TENDREMOS MAS REDIRECCIONES QUE SOLO A LOGIN , POR LO QUE CREAMOS UN METODO PARA REDIRECCIONAR

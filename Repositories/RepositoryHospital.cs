@@ -43,5 +43,19 @@ namespace NetCoreSeguridadEmpleados.Repositories
             Empleado empleado = await this.context.Empleados.FirstOrDefaultAsync(z => z.Apellido == apellido && z.IdEmpleado == idEmpleado);
             return empleado;
         }
+
+        public async Task DeleteEmpleadoAsync(int idEmpleado)
+        {
+            Empleado empleado = await this.FindEmpleadoAsync(idEmpleado);
+            this.context.Empleados.Remove(empleado);
+            await this.context.SaveChangesAsync();
+        }
+
+        public async Task<bool> TieneSubordinadosAsync(int idEmpleado)
+        {
+            var subordinados = await this.context.Empleados.Where(x => x.Dir == idEmpleado).ToListAsync();
+            return subordinados.Count > 0;
+        }
+        
     }
 }

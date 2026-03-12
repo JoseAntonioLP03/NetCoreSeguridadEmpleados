@@ -6,6 +6,18 @@
 
 <h1>Mis Compis</h1>
 
+@if (Context.User.IsInRole("PRESIDENTE") || Context.User.IsInRole("DIRECTOR"))
+{
+    <form method="post">
+        <label>Incremento salarial:</label>
+        <input type="text" name="incremento" class="form-control"/>
+        <button class="btn btn-info">
+            A subir salarios !!
+        </button>
+    </form>
+}
+
+
 
 <table class="table">
     <thead>
@@ -46,9 +58,9 @@
             <td>
                 @Html.DisplayFor(modelItem => item.IdDepartamento)
             </td>
-            <td>
-
-            </td>
+                <td>
+                    <a class="nav-link text-dark" asp-area="" asp-controller="Empleados" asp-action="Details" asp-route-id="@item.IdEmpleado">Details</a>
+                </td>
         </tr>
 }
     </tbody>
